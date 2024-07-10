@@ -1,22 +1,15 @@
 package org.vervebridge.proj.libmanagementsystem;
 
-import java.util.Date;
+import java.util.Objects;
 
-public class AvailableBooks {
+public final class AvailableBooks {
     private final String title;
     private final String author;
     private final String genre;
     private final String image;
     private final String date;
 
-    public AvailableBooks(
-            String title,
-            String author,
-            String genre,
-            String image,
-            String date
-    ){
-
+    public AvailableBooks(String title, String author, String genre, String image, String date) {
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -24,6 +17,10 @@ public class AvailableBooks {
         this.date = date;
     }
 
+
+    public String getImage() {
+        return image;
+    }
 
     public String getTitle() {
         return title;
@@ -35,10 +32,6 @@ public class AvailableBooks {
 
     public String getGenre() {
         return genre;
-    }
-
-    public String getImage() {
-        return image;
     }
 
     public String getDate() {

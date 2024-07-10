@@ -62,7 +62,7 @@
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/kunal/VerveBridge/LibManagementSystem/src/main/resources/org/vervebridge/proj/libmanagementsystem/images",
-    "project.structure.last.edited": "Libraries",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.396292",
     "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
@@ -110,6 +110,10 @@
         <breakpoint enabled="true" type="java-exception">
           <properties class="java.lang.RuntimeException" package="java.lang" />
           <option name="timeStamp" value="1" />
+        </breakpoint>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.NullPointerException" package="java.lang" />
+          <option name="timeStamp" value="2" />
         </breakpoint>
       </breakpoints>
     </breakpoint-manager>

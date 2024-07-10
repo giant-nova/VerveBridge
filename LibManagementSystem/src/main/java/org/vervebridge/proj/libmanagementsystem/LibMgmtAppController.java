@@ -66,6 +66,8 @@ public class LibMgmtAppController {
                 if (result.next()){
                     getData.studentId = studentId.getText();
 
+                    getData.path = result.getString("image");
+
                     alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Admin Message");
                     alert.setHeaderText(null);

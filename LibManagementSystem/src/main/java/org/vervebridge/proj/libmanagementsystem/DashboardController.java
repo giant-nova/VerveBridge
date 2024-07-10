@@ -13,12 +13,15 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -29,6 +32,31 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DashboardController implements Initializable{
+
+
+    @FXML
+    private AnchorPane savedBook_form;
+
+    @FXML
+    private ImageView savedBook_imgView;
+
+    @FXML
+    private TableView<saveBook> savedBook_tableView;
+
+    @FXML
+    private TableColumn<saveBook, String> savedBook_title;
+
+    @FXML
+    private TableColumn<saveBook, String> savedBook_author;
+
+    @FXML
+    private TableColumn<saveBook, String> savedBook_type;
+
+    @FXML
+    private TableColumn<saveBook, String> savedBook_publishedDate;
+
+    @FXML
+    private Button unsaveBtn;
 
     @FXML
     private AnchorPane returnBook_form;
@@ -110,9 +138,6 @@ public class DashboardController implements Initializable{
 
     @FXML
     private Label take_titleLabel;
-
-    @FXML
-    private AnchorPane savedBook_form;
 
     @FXML
     private AnchorPane issue_form;
@@ -212,7 +237,6 @@ public class DashboardController implements Initializable{
     private ObservableList<AvailableBooks> listBook;
 
     public void showAvailableBooks(){
-
         listBook = dataList();
         col_ab_book_title.setCellValueFactory(new PropertyValueFactory<>("title"));
         col_ab_author.setCellValueFactory(new PropertyValueFactory<>("author"));
@@ -223,7 +247,8 @@ public class DashboardController implements Initializable{
     }
 
     public void selectAvailableBooks(){
-        AvailableBooks bookData = available_books_table_view.getSelectionModel().getSelectedItem();
+        AvailableBooks bookData;
+        bookData = available_books_table_view.getSelectionModel().getSelectedItem();
         int num = available_books_table_view.getSelectionModel().getFocusedIndex();
 
         if((num - 1) < -1) return ;
@@ -233,6 +258,15 @@ public class DashboardController implements Initializable{
         String uri = "file:" + bookData.getImage();
         Image image = new Image(uri, 150, 180, false, true);
         available_books_img.setImage(image);
+
+        getData.issuedBookTitle = bookData.getTitle();
+
+        getData.savedTitle = bookData.getTitle();
+        getData.savedAuthor = bookData.getAuthor();
+        getData.savedGenre = bookData.getGenre();
+        getData.savedImage = bookData.getImage();
+        getData.savedDate = bookData.getDate();
+        getData.savedStudentId = getData.studentId;
     }
 
     public void abTakeButton(ActionEvent event){
@@ -257,6 +291,7 @@ public class DashboardController implements Initializable{
             saved_books_btn.setStyle("-fx-background-color: linear-gradient(to top left, #6666ff, #f2738c);");
 
             currentForm_label.setText("Available Books");
+            showAvailableBooks();
         }
         else if (event.getSource() == issue_book_btn) {
             available_books_form.setVisible(false);
@@ -283,9 +318,11 @@ public class DashboardController implements Initializable{
             saved_books_btn.setStyle("-fx-background-color: linear-gradient(to top left, #6666ff, #f2738c);");
 
             currentForm_label.setText("Return Books");
+
+            showReturnBooks();
         }
         else if (event.getSource() == saved_books_btn){
-            available_books_form.setVisible(true);
+            available_books_form.setVisible(false);
             issue_form.setVisible(false);
             savedBook_form.setVisible(true);
             returnBook_form.setVisible(false);
@@ -296,9 +333,9 @@ public class DashboardController implements Initializable{
             available_books_btn.setStyle("-fx-background-color: linear-gradient(to top left, #6666ff, #f2738c);");
 
             currentForm_label.setText("Saved Books");
+            showSavedBooks();
         }
     }
-
 
     private final String[] comboBox = {"Male", "Female", "Others"};
 
@@ -313,7 +350,6 @@ public class DashboardController implements Initializable{
     }
 
     public void findBook(ActionEvent event) {
-//        clearFindData();
         String sql = "SELECT * FROM book WHERE bookTitle='" + take_bookTitle.getText() + "'";
 
         connect = Database.connectDB();
@@ -350,10 +386,6 @@ public class DashboardController implements Initializable{
 
                 if(!check) {
                     take_titleLabel.setText("Book is not available");
-                    take_authorLabel.setText("");
-                    take_GenreLabel.setText("");
-                    take_publishedDateLabel.setText("");
-                    take_image_view.setImage(null);
                 }
             }
         } catch (Exception e) {
@@ -385,39 +417,133 @@ public class DashboardController implements Initializable{
         take_issuedDate.setText(date);
     }
 
-    public ObservableList<returnBook> returnBookData() {
-        ObservableList<returnBook> listReturnBook = FXCollections.observableArrayList();
-        String checkReturn = "Not Return";
+    public void insertImage() {
+        FileChooser open = new FileChooser();
+        open.setTitle("Image File");
+        open.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image file", "*png", "*jpg"));
+        Stage stage = (Stage) nav_form.getScene().getWindow();
 
-        String sql = "SELECT * FROM issuedBook WHERE checkReturn= '" + checkReturn + "'";
+        File file = open.showOpenDialog(stage);
+
+        if(file != null){
+            Image image = new Image(file.toURI().toString(), 100, 100, false, true);
+            circle_image.setFill(new ImagePattern(image));
+
+            getData.path = file.getAbsolutePath();
+            changeProfile();
+        }
+    }
+
+    public void designInsertImage() {
+        edit_btn.setVisible(false);
+
+        circle_image.setOnMouseEntered((MouseEvent event) -> {
+            edit_btn.setVisible(true);
+        });
+        circle_image.setOnMouseExited((MouseEvent event) -> {
+            edit_btn.setVisible(false);
+        });
+        edit_btn.setOnMouseEntered((MouseEvent event) -> {
+            edit_btn.setVisible(true);
+        });
+        edit_btn.setOnMousePressed((MouseEvent event) -> {
+            edit_btn.setVisible(true);
+        });
+        edit_btn.setOnMouseExited((MouseEvent event) -> {
+            edit_btn.setVisible(false);
+        });
+    }
+
+    public void changeProfile() {
+        String uri = getData.path;
+
+        String sql = "UPDATE student SET image = '" + uri + "' WHERE studentId= '" + getData.studentId + "'";
+
         connect = Database.connectDB();
 
-        Alert alert;
+        try{
+            statement = connect.createStatement();
+            statement.executeUpdate(sql);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void showProfile()   {
+        String  uri = getData.path;
+
+        Image image = new Image(uri, 100, 100, false, true);
+        circle_image.setFill(new ImagePattern(image));
+
+    }
+
+    public ObservableList<returnBook> returnBookFun(){
+        ObservableList<returnBook> bookReturnData = FXCollections.observableArrayList();
+
+        String check = "Not Return";
+
+        String sql = "SELECT * FROM issuedBook WHERE checkReturn = '" + check +"' and studentId= '" + getData.studentId +"'";
+
+        connect = Database.connectDB();
 
         try{
-            returnBook rBooks;
+            returnBook rBook;
 
             prepare = connect.prepareStatement(sql);
             result = prepare.executeQuery();
 
             while (result.next()){
-                rBooks = new returnBook(
+                rBook = new returnBook(
                         result.getString("bookTitle"),
                         result.getString("author"),
                         result.getString("genre"),
+                        result.getString("image"),
                         result.getString("date")
                 );
-                listReturnBook.add(rBooks);
+                bookReturnData.add(rBook);
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return listReturnBook;
+        return bookReturnData;
+    }
+
+    public void returnBooks(){
+        String sql = "UPDATE issuedBook SET checkReturn= 'Returned' WHERE bookTitle ='" + getData.issuedBookTitle + "'";
+
+        connect = Database.connectDB();
+
+        Alert alert;
+
+        try{
+            if(return_image_view.getImage() == null) {
+
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Please Select the Book !");
+                alert.showAndWait();
+            }else {
+                statement = connect.createStatement();
+                statement.executeUpdate(sql);
+
+                alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Successfully Returned !");
+                alert.showAndWait();
+
+                showReturnBooks();
+                return_image_view.setImage(null);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void showReturnBooks() {
-        ObservableList<returnBook> returnData = returnBookData();
+        ObservableList<returnBook> returnData = returnBookFun();
 
         return_bookTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         return_bookAuthor.setCellValueFactory(new PropertyValueFactory<>("author"));
@@ -425,6 +551,149 @@ public class DashboardController implements Initializable{
         return_issue_date.setCellValueFactory(new PropertyValueFactory<>("date"));
 
         return_tableView.setItems(returnData);
+    }
+
+    public void selectReturnBook() {
+        returnBook rBook = return_tableView.getSelectionModel().getSelectedItem();
+        int num = return_tableView.getSelectionModel().getFocusedIndex();
+
+        if((num - 1) < - 1) return ;
+
+        String uri = "file:" + rBook.getImage();
+
+        Image image = new Image(uri, 150, 180, false, true);
+
+        return_image_view.setImage(image);
+
+        getData.issuedBookTitle = rBook.getTitle();
+    }
+
+    public ObservableList<saveBook> savedBooksData() {
+        ObservableList<saveBook> listSaveData = FXCollections.observableArrayList();
+
+        String sql = "SELECT * FROM savedBook WHERE studentId= '" + getData.studentId +"'";
+        connect = Database.connectDB();
+
+        try{
+            saveBook sBook;
+
+            prepare = connect.prepareStatement(sql);
+            result = prepare.executeQuery();
+
+            while(result.next()){
+                sBook = new saveBook(
+                        result.getString("bookTitle"),
+                        result.getString("author"),
+                        result.getString("bookType"),
+                        result.getString("image"),
+                        result.getString("date")
+                );
+                listSaveData.add(sBook);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return listSaveData;
+    }
+
+    private ObservableList<saveBook> sBookList;
+    public void showSavedBooks(){
+
+        sBookList = savedBooksData();
+
+        try {
+            savedBook_title.setCellValueFactory(new PropertyValueFactory<>("title"));
+            savedBook_author.setCellValueFactory(new PropertyValueFactory<>("author"));
+            savedBook_type.setCellValueFactory(new PropertyValueFactory<>("genre"));
+            savedBook_publishedDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        savedBook_tableView.setItems(sBookList);
+    }
+
+    public void saveBooks(){
+        String sql = "INSERT INTO savedBook VALUES(?,?,?,?,?,?)";
+        connect = Database.connectDB();
+
+        try{
+            Alert alert;
+
+            if(available_books_title.getText().isEmpty()) {
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Please select the Book !");
+                alert.showAndWait();
+            }else {
+                prepare = connect.prepareStatement(sql);
+                prepare.setString(1, getData.savedStudentId);
+                prepare.setString(2, getData.savedTitle);
+                prepare.setString(3, getData.savedAuthor);
+                prepare.setString(4, getData.savedGenre);
+                prepare.setString(5, getData.savedImage);
+                prepare.setString(6, getData.savedDate);
+                prepare.executeUpdate();
+
+                alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Book Saved !");
+                alert.showAndWait();
+
+                showSavedBooks();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void selectSavedBooks(){
+        saveBook sBook = savedBook_tableView.getSelectionModel().getSelectedItem();
+        int num = savedBook_tableView.getSelectionModel().getFocusedIndex();
+
+        if((num - 1) < -1) return;
+
+        String uri = "file:" + sBook.getImage();
+
+        Image image = new Image(uri, 150, 180, false, true);
+        savedBook_imgView.setImage(image);
+
+        getData.savedImage = sBook.getImage();
+        getData.savedTitle = sBook.getTitle();
+    }
+
+    public void unsaveBooks() {
+        String sql = "DELETE from savedBook WHERE bookTitle= '" + getData.savedTitle + "' " + "and image= '" + getData.savedImage + "'";
+        connect = Database.connectDB();
+
+        try{
+            Alert alert;
+
+            if(savedBook_imgView.getImage() == null) {
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Please Select the Book");
+                alert.showAndWait();
+            }else {
+                statement = connect.createStatement();
+                statement.executeUpdate(sql);
+
+                alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Admin Message");
+                alert.setHeaderText(null);
+                alert.setContentText("Successfully unsaved");
+                alert.showAndWait();
+
+                showSavedBooks();
+                savedBook_imgView.setImage(null);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void takeBook(){
@@ -483,6 +752,7 @@ public class DashboardController implements Initializable{
         studentId_label.setText(getData.studentId);
         take_studentIdLabel.setText(getData.studentId);
     }
+
     private double x = 0;
     private double y = 0;
 
@@ -554,10 +824,17 @@ public class DashboardController implements Initializable{
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        showReturnBooks();
+        try {
+            showReturnBooks();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         showAvailableBooks();
         studentId();
         gender();
         displayDate();
+        showSavedBooks();
+        designInsertImage();
+//        showProfile();
     }
 }

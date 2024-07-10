@@ -1,20 +1,19 @@
 package org.vervebridge.proj.libmanagementsystem;
 
-public class returnBook {
+public class saveBook {
     private final String title;
     private final String author;
     private final String genre;
     private final String date;
     private final String image;
 
-    public returnBook(
+    public saveBook(
             String title,
             String author,
             String genre,
             String image,
             String date
     ){
-
         this.title = title;
         this.author = author;
         this.genre = genre;
